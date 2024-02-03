@@ -1,20 +1,22 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:download_any_file/check_permission.dart';
-import 'package:download_any_file/directory_path.dart';
+import 'package:download_any_file/first_way/check_permission.dart';
+import 'package:download_any_file/first_way/directory_path.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as Path;
+import 'package:permission_handler/permission_handler.dart';
 
-class FileList extends StatefulWidget {
-  FileList({super.key});
+class DownLoadPdfFirstWayScreen extends StatefulWidget {
+  const DownLoadPdfFirstWayScreen({super.key});
 
   @override
-  State<FileList> createState() => _FileListState();
+  State<DownLoadPdfFirstWayScreen> createState() =>
+      _DownLoadPdfFirstWayScreenState();
 }
 
-class _FileListState extends State<FileList> {
+class _DownLoadPdfFirstWayScreenState extends State<DownLoadPdfFirstWayScreen> {
   bool isPermission = false;
   var checkAllPermissions = CheckPermission();
 
@@ -29,8 +31,8 @@ class _FileListState extends State<FileList> {
 
   @override
   void initState() {
-    super.initState();
     checkPermission();
+    super.initState();
   }
 
   var dataList = [
@@ -96,21 +98,62 @@ class _FileListState extends State<FileList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: isPermission
-            ? ListView.builder(
-                itemCount: dataList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  var data = dataList[index];
-                  return TileList(
-                    fileUrl: data['url']!,
-                    title: data['title']!,
-                  );
-                })
-            : TextButton(
-                onPressed: () {
-                  checkPermission();
-                },
-                child: const Text("Permission issue")));
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: dataList.length,
+              itemBuilder: (BuildContext context, int index) {
+                var data = dataList[index];
+                return TileList(
+                  fileUrl: data['url']!,
+                  title: data['title']!,
+                );
+              },
+            ),
+          ),
+          ElevatedButton(
+              onPressed: () async {
+                Map<Permission, PermissionStatus> statuses = await [
+                  Permission.storage,
+                  //add more permission to request here.
+                ].request();
+                print(statuses);
+
+                // if (statuses[Permission.storage]!.isGranted) {
+                //   // var dir = await DownloadsPathProvider.downloadsDirectory;
+                //   // String savename = "file.pdf";
+                //   // String savePath = dir.path + "/$savename";
+                //   // print(savePath);
+                //   //output:  /storage/emulated/0/Download/banner.png
+                //   try {
+                //     // await Dio().download(
+                //     //     fileurl,
+                //     //     savePath,
+                //     //     onReceiveProgress: (received, total) {
+                //     //       if (total != -1) {
+                //     //         print((received / total * 100).toStringAsFixed(0) + "%");
+                //     //         //you can build progressbar feature too
+                //     //       }
+                //     //     });
+                //     print("File is saved to download folder.");
+                //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                //       content: Text("File Downloaded"),
+                //     ));
+                //   } on DioError catch (e) {
+                //     print(e.message);
+                //   }
+                // } else {
+                //   print("No permission to read and write.");
+                //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                //     content: Text("Permission Denied !"),
+                //   ));
+                // }
+              },
+              child: Text('Check'))
+        ],
+      ),
+    );
   }
 }
 
